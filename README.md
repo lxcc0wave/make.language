@@ -53,7 +53,7 @@ stringにnullはありません.
 
 があるとして
 
-javac -encoding UTF-8 element\*.java parser\*.java main\*.java visitor\*.java
+javac -encoding UTF-8 element\\*.java parser\\*.java main\\*.java visitor\\*.java
 
 してください.
 
