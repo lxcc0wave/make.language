@@ -1,2 +1,2 @@
 # make.language
-making my language
+言語を作ってみます.
