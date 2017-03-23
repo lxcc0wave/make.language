@@ -1,0 +1,365 @@
+<!DOCTYPE HTML>
+<html>
+ <head>
+	<title>言語の概要</title>
+ <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+</head>
+<body>
+ 簡単な言語のREPLを提供します.
+ <h2>構文規則</h2>
+ <p>
+ <pre>
+  Root ::= P ";"<br>
+  P ::= Statement <br>
+  	| Expression <br>
+  	| Block<br>
+  Statement ::= Assign<br>
+  	| If<br>
+  	| While<br>
+  	| FunctionDefinition<br>
+  Assign ::= "let" Identifier "=" Expression<br>
+  If ::= "if" Expression "then" P ("else" P)?<br>
+  While ::= "while" "(" Expression ")" P<br>
+  FunctionDefitinition ::= "let" Identifier "(" DefArgumentList ")" "=" P<br>
+  Block ::= "{" (P ";")* "}"<br>
+  DefArgumentList ::= DefArgument ("," DefArgument )*<br>
+  DefArgument ::= Identifier<br>
+  Expression ::= C1 | Conditional<br>
+  Conditional ::= C1 "?" Expression ":" Expression<br>
+  C1 ::= C2 (("|" | "or") C2)*<br>
+  C2 ::= C3 (("&amp" | "and") C3)*<br>
+  C3 ::= C4 (("^" | "xor") C4)*<br>
+  C4 ::= E1 (("&lt" | "==" | "&gt" | "&lt=" | "!=" | "&gt=") E1)*<br>
+  E1 ::= E2 (("+" | "-") E2)*<br>
+  E2 ::= E3 ("%" E3)*<br>
+  E3 ::= E4 (("*" | "/") E4)*<br>
+  E4 ::= E5 ("**" E5)*<br>
+  E5 ::= C5 "!"?<br>
+  C5 ::= ("!" | "not")* E6<br>
+  E6 ::= ("+" | "-")* E6 | E7<br>
+  E7 ::= Data<br>
+  	| Cast <br>
+  	| "abs" "(" Expression ")" <br>
+  	| "(" Expression ")"<br>
+  	| Identifier<br>
+  	| FunctionCall<br>
+  	| "typeof" "(" Expression ")"<br>
+	| "print" "(" Expression ")"<br>
+	| "scan()"<br>
+  Data ::= int | double | bool | string<br>
+  Cast ::= (Type) Expression<br>
+  FunctionCall ::= Identifier "(" CallArgumentList ")"<br>
+  int ::= ["0"-"9"]+<br>
+  double ::= int "." int<br>
+  string ::= quot char* quot<br>
+  quot ::= "<br>
+  bool ::= "true" | "false"<br>
+  Identifier ::= ALPHABETIC (ALPHABETIC | DIGIT)*<br>
+  Type ::= "int" | "double" | "string" | "bool"<br>
+  CallArgumentList ::= CallArgument ("," CallArgument )*<br>
+  CallArgument ::= Expression<br>
+  </pre>
+ </p>
+ <h2>言語仕様</h2>
+  <h3>データ型</h3>
+   <h4>データの型名</h4>
+    <p>
+     <table border="1" summary="data type">
+      <tr>
+       <th>Java</th>
+       <th>MyLanguage</th>
+       <th>クラス</th>
+       <th>列挙型Type</th>
+      </tr>
+      <tr>
+       <td>boolean</td>
+       <td>bool</td>
+       <td>Bool</td>
+       <td>BOOL</td>
+      </tr>
+      <tr>
+       <td>int</td>
+       <td>int</td>
+       <td>Int</td>
+       <td>INT</td>
+      </tr>
+      <tr>
+       <td>double</td>
+       <td>double</td>
+       <td>Doub</td>
+       <td>DOUBLE</td>
+      </tr>
+      <tr>
+       <td>String</td>
+       <td>string</td>
+       <td>Str</td>
+       <td>STRING</td>
+      </tr>
+     </table>
+	 コンソールで実際に入出力するのは[MyLanguage]です.<br>
+ 	 それを表現している型は[クラス]です.<br>
+ 	 ソース内で型を記述する際, [列挙型Type]を使います.
+    </p>
+   <h4>変換規則</h4>
+    <p>
+     <table border="1" summary="conversion rule">
+      <tr>
+       <th>From</th>
+       <th>To</th>
+       <th>Rule</th>
+      </tr>
+      <tr>
+       <td>bool</td>
+       <td>int</td>
+       <td><i>true</i>ならば<i>1</i>, <i>false</i>ならば,<i>0</i></td>
+      </tr>
+      <tr>
+       <td>bool</td>
+       <td>double</td>
+       <td><i>true</i>ならば<i>1.0</i>, <i>false</i>ならば<i>0.0</i></td>
+      </tr>
+      <tr>
+       <td>bool</td>
+       <td>string</td>
+       <td><i>true</i>ならば"true", <i>false</i>ならば"false"</td>
+      </tr>
+      <tr>
+       <td>int</td>
+       <td>bool</td>
+       <td><i>0</i>ならば<i>false</i>, それ以外は<i>true</i></td>
+      </tr>
+      <tr>
+       <td>int</td>
+       <td>double</td>
+       <td>そのままの値</td>
+      </tr>
+      <tr>
+       <td>int</td>
+       <td>string</td>
+       <td>値を文字列にする</td>
+      </tr>
+      <tr>
+       <td>double</td>
+       <td>bool</td>
+       <td><i>0.0</i>ならば<i>false</i>, それ以外は<i>true</i></td>
+      </tr>
+      <tr>
+       <td>double</td>
+       <td>int</td>
+       <td>小数点以下切り捨て</td>
+      </tr>
+      <tr>
+       <td>double</td>
+       <td>string</td>
+       <td>値を文字列にする</td>
+      </tr>
+      <tr>
+       <td>string</td>
+       <td>bool</td>
+       <td>空文字列ならば<i>false</i>, それ以外は<i>true</i></td>
+      </tr>
+      <tr>
+       <td>string</td>
+       <td>int</td>
+       <td>小数点以下を無視して数値に変換</td>
+      </tr>
+      <tr>
+       <td>string</td>
+       <td>double</td>
+       <td>数値に変換</td>
+      </tr>
+     </table>
+    </p>
+   <h4>型の暗黙的変換</h4>
+    <p>
+     演算子によっては暗黙にキャストするものがあります.<br>
+     また, 文によっては要求する型に暗黙に変換するものがあります
+     (この言語においては可能な限り型を自動的に合わせるように実装すべきです).<br>
+     例えばif文の条件式では<i>bool</i>型に変換します.
+    </p>
+   <h4>データの大きさ</h4>
+    <p>
+     <ol>
+      <li>bool</li>
+      <li>int</li>
+      <li>double</li>
+      <li>string</li>
+     </ol>
+    すべてのデータはすべてのデータと比較可能です.<br>
+    同じデータ型ならば次のとおりの結果になります.
+     <dl>
+      <dt>bool</dt>
+       <dd><i>false</i> &lt; <i>true</i>の順序で比較します.</dd>
+      <dt>int</dt>
+       <dd>自然な順序で比較します.</dd>
+      <dt>double</dt>
+       <dd>自然な順序で比較します.</dd>
+      <dt>string</dt>
+       <dd>辞書式順序で比較します.</dd>
+     </dl>
+    違うデータ型ならば型の大きさで比較します.
+   </p>
+  <h3>演算子</h3>
+   <h4>定義</h4>
+     <p>
+      演算子はユーザ定義できません.
+     </p>
+   <h4>多重定義</h4>
+    <p>
+      すべての演算子はすべてのデータ型にたいして多重定義されますが,<br>
+      見かけ上成り立つように思える関係,<br>
+      例えば+, -は互いに逆演算であるというような
+      関係が成り立っているとは限りません.
+    </p>
+  <h3>関数と変数の参照</h3>
+  <p>
+    関数呼び出しや変数の参照を行うとき,<br>
+    対象の関数や変数が存在しなかった場合は<i>bool.false</i>と評価します.<br>
+    関数定義は関数名として評価します.
+  </p>
+  <h3>変数定義</h3>
+  <p>
+    ライブラリの定数と同じ名前の変数は定義できません.
+  </p>
+  <h3>関数定義</h3>
+  <p>
+    関数は引数の個数によって多重定義できます.
+  </p>
+  <p>
+    ライブラリ関数をユーザ定義関数で多重定義することはできません.
+  </p>
+  <h3>デフォルト値</h3>
+   <p>
+    適切でない処理に対しては<i>bool.false</i>と評価します.
+   </p>
+  <h3>メタ参照, 定義</h3>
+   <p>
+     変数や関数は<i>string</i>型のデータで参照できます(ライブラリ関数<i>refvar(name)</i>, <i>call(name, args)</i>).
+   </p>
+   <p>
+     また, 変数は<i>string</i>型のデータで名前を指定して定義できます(ライブラリ関数<i>defvar(name, value)</i>).
+   </p>
+   <p>
+     変数のメタ参照によって配列の真似ができます.
+     <pre>
+     {<br>
+      {<br>
+        let i = 0;<br>
+        while(i &lt; 3){<br>
+         defvar("x" + i, 10 + i * i);<br>
+         let i = i + 1;<br>
+        };<br>
+      };<br>
+      {<br>
+       let i = 0;<br>
+       while(i &lt; 3){<br>
+        print("x" + i + " = " + refvar("x" + i));<br>
+        let i = i + 1;<br>
+       };<br>
+      };<br>
+     };
+     </pre>
+     *実行結果
+     <pre>
+     x0 = 10<br>
+     x1 = 11<br>
+     x2 = 14<br>
+     </pre>
+   </p>
+  <h3>ライブラリ関数</h3>
+   <ul>
+     <li><i>random()</i>は標準一様分布に従う乱数を取得します.</li>
+     <li><i>sin(val)</i>は引数の正弦値を取得します.</li>
+     <li><i>arcsin(val)</i>は引数の逆正弦値を取得します.</li>
+     <li><i>exp(val)</i>は引数の指数関数値を取得します.</li>
+     <li><i>log(val)</i>は引数の自然対数値を取得します.</li>
+     <li><i>refvar(name)</i>は変数テーブルから<i>name</i>という名前を持つ変数を探し, その値を返します.</li>
+     <li><i>defvar(name, value)</i>は変数テーブルに<i>name</i>という名前で<i>value</i>という値をもつ変数を定義します.</li>
+     <li>
+       <i>call(name, args)</i>は関数テーブルから<i>name</i>という名前を持つ関数を探し, <i>name(args)</i>の値を返します.<br>
+       ここで<i>args</i>は可変引数です.
+     </li>
+     <li><i>eval(str)</i>は文字列<i>str</i>を構文解析して評価結果を取得します.</li>
+     <li><i>dump(str)</i>は文字列<i>str</i>を構文解析して構文木を出力します.</li>
+     <li><i>lex(str)</i>は文字列<i>str</i>を字句解析した結果を出力します.</li>
+     <li><i>vars()</i>はユーザに定義された変数を名前, 値, 型つきですべて出力します.</li>
+     <li><i>funcs()</i>はユーザに定義された関数を名前, 引数リスト, 構文木つきですべて出力します.</li>
+   </ul>
+ <h3>入出力演算子</h3>
+  <h4>入力演算子</h4>
+    <p>
+      <i>scan</i>演算子が用意されています.<br>
+      標準入力から1行分, <i>string</i>型として読み取ります.<br>
+      何らかの例外(読み取れない文字など)が生じた場合は<i>bool.false</i>を返します.
+    </p>
+  <h4>出力演算子</h4>
+    <p>
+      <i>print</i>演算子が用意されています.<br>
+      標準出力に引数を<i>string</i>型にキャストして出力します.
+    </p>
+ <h3>文字列の操作</h3>
+    <p>
+     <i>string</i>型に対する正負の符号は以下の操作を表します.
+      <pre>
+      +str = car str
+      -str = cdr str
+      car ""     = ""
+      car (x:xs) = x
+      cdr ""     = ""
+      cdr (x:xs) = xs
+      </pre>
+    </p>
+ <h2>構文規則の拡張</h2>
+ <p>
+  構文規則を拡張するときには次に気を付ける必要がある.
+  <ul>
+  <li>
+    <b>parser</b>パッケージの列挙型<b>Token</b>に追加すべきトークンがあれば追加する.
+  </li>
+  <li>
+    データ型を実装する場合は列挙型<b>Type</b>にメンバを追加し,<br>
+    <b><i>ElementVisitor</i></b>クラスの具象クラスでデータ型を参照しているメソッドをすべて更新する.
+  </li>
+  <li>
+    <b>element</b>パッケージの<i><b>Program</b></i>インターフェースを追加する構文規則に応じて適切に実装する.
+  </li>
+  <li>
+    <b>parser</b>パッケージの<b>ElementParser</b>クラスに追加する構文規則に対応したメソッドを追加する.
+  </li>
+  <li>
+    <b>visitor</b>パッケージの<i><b>ElementVisitor</b></i>インターフェースに
+    具象クラスに対する新たな<b><i>visit()</i></b>メソッドを追加する.
+  </li>
+  </ul>
+ </p>
+ <h2>ライブラリ関数の追加</h2>
+  <p>
+    <b>ElementEvalVisitor</b>に追加したい関数の名前(fとする)と同名のメソッド(混乱を避けるため)<br>
+    <pre>public boolean f(FunctionCall p)</pre>
+    を追加します.
+  </p>
+  <p>
+    引数それぞれについて個別に<b>accept(this)</b>させて値を保存しておき,<br>
+    最後に戻り値を<b>ElementEvalVisitor.box</b>に格納します.
+  </p>
+  <p>
+    実際のこのメソッドの戻り値は, 処理が正常に成功したかどうかを返します.<br>
+    <b>ElementEvalVisitor.visit(FunctionCall p)</b>の冒頭に関数名のマッチングと<br>
+    呼び出しを追加します. 処理成功ならば<b>return;</b>します.
+  </p>
+  <p>
+    関数の引数の数に関する多重定義は<b>FunctionCall.getArgumentList().size()</b>を活用してください.
+  </p>
+ <p>
+   この方法で追加した関数と同じ数の引数をもつユーザ関数の定義は有効ではありません.
+ </p>
+ <h2>定数の追加</h2>
+ <p>
+   <b>ElementEvalVisitor</b>に追加したい定数のフィールドを追加します.<br>
+   <b>ElementEvalVisitor.visit(Variable p)</b>の冒頭に定数名のマッチングの処理を追加します.
+ </p>
+ <p>
+   この方法で追加した変数と同じ名前のユーザ変数の定義は有効ではありません.
+ </p>
+</body>
+</html>
