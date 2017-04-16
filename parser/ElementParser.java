@@ -53,9 +53,28 @@ import element.statement.While;
 /**
  * 構文解析器です.
  * @author sin
- * @version 2017.3.17
+ * @version 2017.4.8
  */
 public class ElementParser {
+	/**
+	 * 改行コード.<br>
+	 * CR, CR+LF, LFの3通りのみ考慮する.
+	 */
+	private final String NEW_LINE;
+	private boolean newlineIsCR, newlineIsLF, newlineIsCRLF;
+	private final void checkNewLine(){
+		if(NEW_LINE.equals("\n")){
+			newlineIsLF = true;
+		} else if(NEW_LINE.equals("\r")){
+			newlineIsCR = true;
+		} else {
+			newlineIsCRLF = true;
+		}
+	}
+	/**
+	 * 行番号.
+	 */
+	private int lineNumber;
 	/**
 	 * 入力ストリーム.
 	 */
@@ -82,7 +101,7 @@ public class ElementParser {
 	 */
 	public boolean printLex = false;
 	/**
-	 * ストリームの終端かどうか
+	 * ストリームの終端かどうか.
 	 */
 	public boolean isEnd = false;
 
@@ -96,6 +115,9 @@ public class ElementParser {
 		currChar = '\0';
 		currToken = Token.START;
 		tokenValue = "";
+		NEW_LINE = System.getProperty("line.separator");
+		lineNumber = 1;
+		checkNewLine();
 	}
 
 	/**
@@ -111,6 +133,9 @@ public class ElementParser {
 		currChar = '\0';
 		currToken = Token.START;
 		tokenValue = "";
+		NEW_LINE = System.getProperty("line.separator");
+		lineNumber = 1;
+		checkNewLine();
 	}
 
 	/**
@@ -126,6 +151,26 @@ public class ElementParser {
 		}
 	}
 	/**
+	 * 行番号を数えます.
+	 */
+	private void countLine(){
+		if(newlineIsCR && currChar == '\r'){
+			lineNumber++;
+		} else if(newlineIsLF && currChar == '\n'){
+			lineNumber++;
+		} else if(newlineIsCRLF){
+			if(currChar == '\r'){
+				CRchecked = true;
+			} else if(CRchecked && currChar == '\n'){
+				lineNumber++;
+				CRchecked = false;
+			} else {
+				CRchecked = false;
+			}
+		}
+	}
+	private boolean CRchecked;
+	/**
 	 * 次の文字を読む.
 	 *
 	 * @throws IOException 入出力の失敗が発生したとき
@@ -138,6 +183,7 @@ public class ElementParser {
 		int c = br.read();
 		isEnd = c == -1;
 		currChar = (char)c;
+		countLine();
 	}
 	/**
 	 * 1文字戻す.
@@ -259,13 +305,13 @@ public class ElementParser {
 				currToken = Token.IDENTIFIER;
 				readIdentifier();
 			} else {
-				throw new NoSuchTokenException("ElementParser|currToken="+currToken+",currChar="+currChar);
+				throw new NoSuchTokenException("Line:" + lineNumber + ", ElementParser|currToken="+currToken+",currChar="+currChar);
 			}
 		}
 
 		/* LEXER : 現在のトークン */
 		if(printLex)
-			System.out.println("ElementParser|currToken, tokenValue = " + currToken + ", " + tokenValue);
+			System.out.println("Line:" + lineNumber + ", currToken = " + currToken + ", tokenValue = " + tokenValue);
 	}
 
 	/**
@@ -318,6 +364,7 @@ public class ElementParser {
 			}
 		}
 	}
+	//文字列をとりあえず切っておいて, マッチング
 	/**
 	 * 構文規則identifier ::= ALPHABETIC (ALPHABETIC | DIGIT)*に従う文字列を読む.<br>
 	 *
@@ -331,7 +378,7 @@ public class ElementParser {
 		String acc = "" + currChar;
 		// キーワードと同時に
 		while(true){
-			if(acc.equals("let")){
+			/*if(acc.equals("let")){
 				currToken = Token.LET;
 				return;
 			} else if(acc.equals("if")){
@@ -388,11 +435,89 @@ public class ElementParser {
 			} else if(acc.equals("scan")){
 				currToken = Token.SCAN;
 				return;
-			}
+			}*/
 			nextChar();
 			if(!Character.isAlphabetic(currChar) && !Character.isDigit(currChar)) // 数字追加 @ 2017.3.18
 				break;
 			acc += currChar;
+		}
+		// 予約語の判定方法を変える @ 2017.4.7
+		if(acc.equals("let")){
+			currToken = Token.LET;
+			rewind();
+			return;
+		} else if(acc.equals("if")){
+			currToken = Token.IF;
+			rewind();
+			return;
+		} else if(acc.equals("else")){
+			currToken = Token.ELSE;
+			rewind();
+			return;
+		} else if(acc.equals("then")){
+			currToken = Token.THEN;
+			rewind();
+			return;
+		} else if(acc.equals("while")){
+			currToken = Token.WHILE;
+			rewind();
+			return;
+		} else if(acc.equals("true")){
+			currToken = Token.TRUE;
+			rewind();
+			return;
+		} else if(acc.equals("false")){
+			currToken = Token.FALSE;
+			rewind();
+			return;
+		} else if(acc.equals("int")){
+			currToken = Token.TYPE_INT;
+			rewind();
+			return;
+		} else if(acc.equals("double")){
+			currToken = Token.TYPE_DOUBLE;
+			rewind();
+			return;
+		} else if(acc.equals("bool")){
+			currToken = Token.TYPE_BOOL;
+			rewind();
+			return;
+		} else if(acc.equals("string")){
+			currToken = Token.TYPE_STRING;
+			rewind();
+			return;
+		} else if(acc.equals("typeof")){
+			currToken = Token.TYPEOF;
+			rewind();
+			return;
+		} else if(acc.equals("and")){
+			currToken = Token.AND;
+			rewind();
+			return;
+		} else if(acc.equals("or")){
+			currToken = Token.OR;
+			rewind();
+			return;
+		} else if(acc.equals("xor")){
+			currToken = Token.XOR;
+			rewind();
+			return;
+		} else if(acc.equals("not")){
+			currToken = Token.NOT;
+			rewind();
+			return;
+		} else if(acc.equals("abs")){
+			currToken = Token.ABS;
+			rewind();
+			return;
+		} else if(acc.equals("print")){
+			currToken = Token.PRINT;
+			rewind();
+			return;
+		} else if(acc.equals("scan")){
+			currToken = Token.SCAN;
+			rewind();
+			return;
 		}
 		tokenValue = acc;
 		rewind();
@@ -410,7 +535,7 @@ public class ElementParser {
 		nextToken();
 		Program p = Prog();
 		if(currToken != Token.SEMICOLON)
-			throw new ParseException("Ends error : currToken=" + currToken + ", currChar=" + currChar);
+			throw new ParseException("Line:" + lineNumber +", Ends error : currToken=" + currToken + ", currChar=" + currChar);
 		return p;
 	}
 	// needs ;
@@ -433,14 +558,14 @@ public class ElementParser {
 		if(currToken == Token.IF){
 			nextToken();
 			if(currToken != Token.LPAR)
-				throw new ParseException("Invalid if:lpar.");
+				throw new ParseException("Line:" + lineNumber + ",Invalid if:lpar.");
 			nextToken();
 			Expression cond = Expr();
 			if(currToken != Token.RPAR)
-				throw new ParseException("Invalid if:rpar.");
+				throw new ParseException("Line:" + lineNumber +", Invalid if:rpar.");
 			nextToken();
 			if(currToken != Token.THEN)
-				throw new ParseException("Invalid if:then.");
+				throw new ParseException("Line:" + lineNumber +", Invalid if:then.");
 			nextToken();
 			Program s = Prog();
 			if(currToken != Token.ELSE)
@@ -453,11 +578,11 @@ public class ElementParser {
 		if(currToken == Token.WHILE){
 			nextToken();
 			if(currToken != Token.LPAR)
-				throw new ParseException("Invalid while:(.");
+				throw new ParseException("Line:" + lineNumber +", Invalid while:(.");
 			nextToken();
 			Expression cond = Expr();
 			if(currToken != Token.RPAR)
-				throw new ParseException("Invalid while:).");
+				throw new ParseException("Line:" + lineNumber +", Invalid while:).");
 			nextToken();
 			Program proc = Prog();
 			return new While(cond, proc);
@@ -466,7 +591,7 @@ public class ElementParser {
 		if(currToken == Token.LET){
 			nextToken();
 			if(currToken != Token.IDENTIFIER)
-				throw new ParseException("Invalid let");
+				throw new ParseException("Line:" + lineNumber +", Invalid let");
 			String name = tokenValue;
 			nextToken();
 			// function def
@@ -475,7 +600,7 @@ public class ElementParser {
 				FunctionDefinitionArgumentList args = new FunctionDefinitionArgumentList();
 				while(currToken != Token.RPAR){
 					if(currToken != Token.IDENTIFIER)
-						throw new ParseException("Invalid let.defun:arglist.");
+						throw new ParseException("Line:" + lineNumber +", Invalid let.defun:arglist.");
 					args.add(tokenValue);
 					nextToken();
 					if(currToken == Token.COMMA)
@@ -483,7 +608,7 @@ public class ElementParser {
 				}
 				nextToken();
 				if(currToken != Token.ASSIGN)
-					throw new ParseException("Invalid let.defun:no =.");
+					throw new ParseException("Line:" + lineNumber +", Invalid let.defun:no =.");
 				nextToken();
 				Program proc = Prog();
 				/*if(currToken != Token.SEMICOLON)
@@ -493,7 +618,7 @@ public class ElementParser {
 			}
 			// variable def
 			if(currToken != Token.ASSIGN)
-				throw new ParseException("Invalid let.defvar:no =.");
+				throw new ParseException("Line:" + lineNumber +", Invalid let.defvar:no =.");
 			nextToken();
 			Expression val = Expr();
 			/*if(currToken != Token.SEMICOLON)
@@ -502,7 +627,7 @@ public class ElementParser {
 			return new Assign(name, val);
 		}
 
-		throw new ParseException("Syntax error: currToken, currChar = " + currToken + ", " + currChar);
+		throw new ParseException("Line:" + lineNumber +", Syntax error: currToken, currChar = " + currToken + ", " + currChar);
 	}
 	private Block Blk() throws Exception{
 		nextToken();
@@ -510,7 +635,7 @@ public class ElementParser {
 		while(currToken != Token.RBRA){
 			b.add(Prog());
 			if(currToken != Token.SEMICOLON)
-				throw new ParseException("Invalid block.");
+				throw new ParseException("Line:" + lineNumber +", Invalid block.");
 			nextToken();
 		}
 		nextToken();
@@ -523,7 +648,7 @@ public class ElementParser {
 		nextToken();
 		Expression s = Expr();
 		if(currToken != Token.COLON)
-			throw new ParseException("Invalid conditional.");
+			throw new ParseException("Line:" + lineNumber +", Invalid conditional.");
 		nextToken();
 		Expression f = Expr();
 		return new Conditional(x, s, f);
@@ -703,7 +828,7 @@ public class ElementParser {
 			if(type != null){
 				nextToken();
 				if(currToken != Token.RPAR)
-					throw new ParseException("Invalid cast:).");
+					throw new ParseException("Line:" + lineNumber +", Invalid cast:).");
 				nextToken();
 				Expression x = Expr();
 				return new Cast(type, x);
@@ -711,7 +836,7 @@ public class ElementParser {
 
 			Expression x = Expr();
 			if(currToken != Token.RPAR)
-				throw new ParseException("Not matching paren.");
+				throw new ParseException("Line:" + lineNumber +", Not matching paren.");
 			nextToken();
 			return x;
 		}
@@ -719,11 +844,11 @@ public class ElementParser {
 		if(currToken == Token.ABS){
 			nextToken();
 			if(currToken != Token.LPAR)
-				throw new ParseException("Invalid abs:(.");
+				throw new ParseException("Line:" + lineNumber +", Invalid abs:(.");
 			nextToken();
 			Expression x = Expr();
 			if(currToken != Token.RPAR)
-				throw new ParseException("Invalid abs:).");
+				throw new ParseException("Line:" + lineNumber +", Invalid abs:).");
 			nextToken();
 			return new Absolute(x);
 		}
@@ -731,11 +856,11 @@ public class ElementParser {
 		if(currToken == Token.PRINT){
 			nextToken();
 			if(currToken != Token.LPAR)
-				throw new ParseException("Invalid print:(.");
+				throw new ParseException("Line:" + lineNumber +", Invalid print:(.");
 			nextToken();
 			Expression x = Expr();
 			if(currToken != Token.RPAR)
-				throw new ParseException("Invalid print:).");
+				throw new ParseException("Line:" + lineNumber +", Invalid print:).");
 			nextToken();
 			return new Print(x);
 		}
@@ -743,10 +868,10 @@ public class ElementParser {
 		if(currToken == Token.SCAN){
 			nextToken();
 			if(currToken != Token.LPAR)
-				throw new ParseException("Invalid scan:(.");
+				throw new ParseException("Line:" + lineNumber +", Invalid scan:(.");
 			nextToken();
 			if(currToken != Token.RPAR)
-				throw new ParseException("Invalid scan:).");
+				throw new ParseException("Line:" + lineNumber +", Invalid scan:).");
 			nextToken();
 			return new Scan();
 		}
@@ -754,11 +879,11 @@ public class ElementParser {
 		if(currToken == Token.TYPEOF){
 			nextToken();
 			if(currToken != Token.LPAR)
-				throw new ParseException("Invalid typeof:(.");
+				throw new ParseException("Line:" + lineNumber +", Invalid typeof:(.");
 			nextToken();
 			Expression x = Expr();
 			if(currToken != Token.RPAR)
-				throw new ParseException("Invalid typeof:).");
+				throw new ParseException("Line:" + lineNumber +", Invalid typeof:).");
 			nextToken();
 			return new TypeOf(x);
 		}
@@ -780,6 +905,6 @@ public class ElementParser {
 			return new FunctionCall(name, args);
 		}
 
-		throw new ParseException("Syntax error: currToken, currChar = " + currToken + ", " + currChar);
+		throw new ParseException("Line:" + lineNumber +", Syntax error: currToken, currChar = " + currToken + ", " + currChar);
 	}
 }

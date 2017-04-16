@@ -20,7 +20,7 @@
   Assign ::= "let" Identifier "=" Expression<br>
   If ::= "if" Expression "then" P ("else" P)?<br>
   While ::= "while" "(" Expression ")" P<br>
-  FunctionDefitinition ::= "let" Identifier "(" DefArgumentList ")" "=" P<br>
+  FunctionDefitinition ::= "let" Identifier "(" DefArgumentList? ")" "=" P<br>
   Block ::= "{" (P ";")* "}"<br>
   DefArgumentList ::= DefArgument ("," DefArgument )*<br>
   DefArgument ::= Identifier<br>
@@ -48,7 +48,7 @@
 	| "scan()"<br>
   Data ::= int | double | bool | string<br>
   Cast ::= (Type) Expression<br>
-  FunctionCall ::= Identifier "(" CallArgumentList ")"<br>
+  FunctionCall ::= Identifier "(" CallArgumentList? ")"<br>
   int ::= ["0"-"9"]+<br>
   double ::= int "." int<br>
   string ::= quot char* quot<br>
@@ -111,7 +111,7 @@
       <tr>
        <td>bool</td>
        <td>int</td>
-       <td><i>true</i>ならば<i>1</i>, <i>false</i>ならば,<i>0</i></td>
+       <td><i>true</i>ならば<i>1</i>, <i>false</i>ならば<i>0</i></td>
       </tr>
       <tr>
        <td>bool</td>
@@ -348,7 +348,7 @@
     呼び出しを追加します. 処理成功ならば<b>return;</b>します.
   </p>
   <p>
-    関数の引数の数に関する多重定義は<b>FunctionCall.getArgumentList().size()</b>を活用してください.
+    関数の引数の数に関する多重定義は<b>FunctionCall#getArgumentList().size()</b>を活用してください.
   </p>
  <p>
    この方法で追加した関数と同じ数の引数をもつユーザ関数の定義は有効ではありません.

@@ -319,11 +319,11 @@ public class ElementEvalVisitor implements ElementVisitor {
 	/**
 	 * 文字列の乗算を定義する.<br>
 	 *
-	 * 例を示す.
+	 * 例を示す.<br>
 	 * {@code
-	 * 	"abc" * "xy" = "axybxycxy";
-	 *  "" * string = "";
-	 *  string * "" = string;
+	 * 	"abc" * "xy" = "axybxycxy";<br>
+	 *  "" * string = "";<br>
+	 *  string * "" = string;<br>
 	 * }
 	 * @param left String
 	 * @param right String
@@ -387,7 +387,7 @@ public class ElementEvalVisitor implements ElementVisitor {
 	 * 文字列の除算を定義する.<br>
 	 * {@code left}に含まれる{@code right}の部分を
 	 * 空文字列で置き換えます.
-	 * 例を示す.
+	 * 例を示す.<br>
 	 * {@code "axybxycxy" / "xy" = "abc";
 	 *  }
 	 *
@@ -756,7 +756,9 @@ public class ElementEvalVisitor implements ElementVisitor {
 		boolean judge = left.getData().equals(box.getData());
 		box = new Box(new Bool(judge));
 	}
-
+	/**
+	 * 左側の値が右側の値より小さいとき{@code true}を返します.
+	 */
 	@Override
 	public void visit(Less p) {
 		p.getLeft().accept(this);
@@ -766,7 +768,9 @@ public class ElementEvalVisitor implements ElementVisitor {
 		boolean judge = comp < 0;
 		box = new Box(new Bool(judge));
 	}
-
+	/**
+	 * 左側の値が右側の値より大きいとき{@code true}を返します.
+	 */
 	@Override
 	public void visit(Greater p) {
 		p.getLeft().accept(this);
@@ -776,7 +780,9 @@ public class ElementEvalVisitor implements ElementVisitor {
 		boolean judge = comp > 0;
 		box = new Box(new Bool(judge));
 	}
-
+	/**
+	 * 型または値が一致しないとき{@code true}を返します.
+	 */
 	@Override
 	public void visit(NotEqual p) {
 		p.getLeft().accept(this);
@@ -785,7 +791,10 @@ public class ElementEvalVisitor implements ElementVisitor {
 		boolean judge = left.getData().equals(box.getData());
 		box = new Box(new Bool(!judge));
 	}
-
+	/**
+	 * {@link ElementEvalVisitor#visit(Less)}と{@link ElementEvalVisitor#visit(Equal)}のどちらかが
+	 * {@code true}を返すとき{@code true}を返します.
+	 */
 	@Override
 	public void visit(LessEqual p) {
 		p.getLeft().accept(this);
@@ -795,7 +804,10 @@ public class ElementEvalVisitor implements ElementVisitor {
 		boolean judge = comp <= 0;
 		box = new Box(new Bool(judge));
 	}
-
+	/**
+	 * {@link ElementEvalVisitor#visit(Greater)}と{@link ElementEvalVisitor#visit(Equal)}のどちらかが
+	 * {@code true}を返すとき{@code true}を返します.
+	 */
 	@Override
 	public void visit(GreaterEqual p) {
 		p.getLeft().accept(this);
